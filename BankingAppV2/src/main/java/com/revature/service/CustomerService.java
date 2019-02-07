@@ -17,6 +17,7 @@ public class CustomerService {
 	static Customer customerTemp = new Customer();
 	static AccountDao accountDao = new AccountDao();
 
+	//Inserting a single customer into the database
 	public static void CreateCustomer() {
 
 		Customer customer = new Customer();
@@ -32,7 +33,6 @@ public class CustomerService {
 		System.out.println("Please create a password: ");
 		customer.setPassword(InputUtility.getStringInput(30));
 
-//		CustomerDao customerDao = new CustomerDao();
 		if (customerDao.getCustomerById(customer.getEmail()) == null) {
 			customerDao.insertCustomer(customer);
 		} else {
@@ -40,6 +40,7 @@ public class CustomerService {
 		}
 	}
 
+	//Creating 2 customers sharing a same account
 	public static void CreateJointCustomers() {
 		List<Customer> customers = new ArrayList<>();
 

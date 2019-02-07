@@ -8,7 +8,7 @@ import com.revature.models.Customer;
 import com.revature.service.AccountService;
 import com.revature.util.InputUtility;
 
-
+//2nd menu navigated
 public class LoginMenu implements View{
 	
 	public int inputValue;

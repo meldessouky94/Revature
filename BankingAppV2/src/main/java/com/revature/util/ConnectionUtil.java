@@ -8,6 +8,7 @@ import java.sql.SQLException;
 public class ConnectionUtil {
 private static Connection connection;
 	
+	//Connection utility to call to save lines of code
 	public ConnectionUtil() {
 		
 	}

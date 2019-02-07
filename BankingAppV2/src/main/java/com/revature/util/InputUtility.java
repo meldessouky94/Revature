@@ -32,6 +32,8 @@ public class InputUtility {
 		
 	}
 	
+	
+	//Confirm user input is string type
 	public static String getStringInput(int max) {
 		String input;
 		while(true) {
@@ -52,6 +54,7 @@ public class InputUtility {
 		}
 	}
 	
+	//confirming they're specifying checkings or savings
 	public static String getAccountType() {
 		String accountType = "";
 		boolean valid = false;
@@ -62,7 +65,7 @@ public class InputUtility {
 				valid = true;
 			} else {
 				System.out.println("Invalid selection. Please enter checkings or savings");
-				break;
+				return null;
 			}	
 		}
 		return accountType;

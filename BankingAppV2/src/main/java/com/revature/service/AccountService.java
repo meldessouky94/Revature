@@ -27,6 +27,7 @@ public class AccountService {
 		this.c = c;
 	}
 
+	//Creating an account and then associating it with the logged in customer for the joint table in our database
 	public static void createAccount(Customer customer) {
 
 		Account account = new Account();
@@ -46,6 +47,7 @@ public class AccountService {
 		account = accountDao.createAccount(account, customer);
 	}
 
+	//Creating a joint account, therefore no need to ask if theyre creating a joint account
 	public static void createJointAccount(List<Customer> customers) {
 
 		Account account = new Account();
@@ -53,8 +55,8 @@ public class AccountService {
 
 		account.setId(id);
 
-		System.out.println("Are you opening a joint account?");
-		account.setIsJoint(InputUtility.getStringInput(30));
+//		System.out.println("Are you opening a joint account?");
+		account.setIsJoint("Joint");
 
 		System.out.println("Are you opening a checkings or savings?");
 		account.setType(InputUtility.getAccountType());
@@ -65,7 +67,7 @@ public class AccountService {
 		account = accountDao.createJointAccount(account, customers);
 	}
 
-
+	// basic depositing for updating the account table
 	public static void deposit(Customer c) {
 		List<Account> customerAccounts = new ArrayList<>();
 		customerAccounts = CustomerDao.getAcounts(c.getEmail());
@@ -94,9 +96,6 @@ public class AccountService {
 		System.out.println("Enter the amount you'd like to deposit");
 		// throw numberformatexception if not found
 		double amount = InputUtility.getIntChoice(1000);
-//		if (sc.hasNextDouble()) {
-//			amount = sc.nextDouble();
-//		}
 		if (amount < 0) {
 			System.out.println("Transaction failed, invalid deposit amount");
 		} else {
@@ -106,7 +105,8 @@ public class AccountService {
 			System.out.println("$" + amount + " deposited. Your balance is now " + a.getBalance() + ".");
 		}
 	}
-
+	
+	//updating balance within accounts 
 	public static void withdraw(Customer c) {
 		List<Account> customerAccounts = new ArrayList<>();
 		customerAccounts = CustomerDao.getAcounts(c.getEmail());
@@ -148,9 +148,9 @@ public class AccountService {
 		}
 	}
 
+	//Return account balance
 	public static void showBalance(Customer c) {
 		List<Account> userAccounts = new ArrayList<>();
-//		CustomerDao cd = new CustomerDao();
 		userAccounts = CustomerDao.getAcounts(c.getEmail());
 
 		for (Account a : userAccounts) {
@@ -158,6 +158,7 @@ public class AccountService {
 		}
 	}
 
+	//Performing both Deposit and Withdraw and committing it at the same time
 	public static void transfer(Customer c) {
 		List<Account> sourceAccounts = new ArrayList<>();
 		sourceAccounts = CustomerDao.getAcounts(c.getEmail());

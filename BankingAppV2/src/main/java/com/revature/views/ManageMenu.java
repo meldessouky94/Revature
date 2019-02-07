@@ -4,6 +4,7 @@ import com.revature.models.Customer;
 import com.revature.service.AccountService;
 import com.revature.util.InputUtility;
 
+// Navigating the 3rd menu
 public class ManageMenu implements View{
 	
 	Customer c;
