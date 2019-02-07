@@ -13,6 +13,7 @@ import com.revature.util.ConnectionUtil;
 
 public class AccountDao {
 
+	//Get all accounts from accounts table, not really utilized for customers
 	public List<Account> getAccounts() {
 		List<Account> accountList = new ArrayList<>();
 		String query = "SELECT * FROM accounts";
@@ -28,7 +29,7 @@ public class AccountDao {
 				double balance = resultSet.getDouble("balance");
 				String type = resultSet.getString("a_type");
 				String isJoint = resultSet.getString("isJoint");
-				account.setid(id);
+				account.setId(id);
 				account.setBalance(balance);
 				account.setType(type);
 				account.setIsJoint(isJoint);
@@ -39,32 +40,12 @@ public class AccountDao {
 		return accountList;
 	}
 
-	public int getNextAccountID() {
-		int accountID = -1;
-
-		if (getAccounts().size() == 0) {
-			return 0;
-		}
-
-		String query = "SELECT MAX(id) AS MAX_AID FROM accounts";
-		try (Connection conn = ConnectionUtil.newConnection();
-				PreparedStatement statement = conn.prepareStatement(query);
-				ResultSet resultSet = statement.executeQuery();) {
-			if (resultSet.next()) {
-				accountID = resultSet.getInt("MAX_AID");
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return accountID + 1;
-	}
-
+	//Create
 	public Account createAccount(Account account, Customer customer) {
-		int accountsCreated = 0;
 		String query = "INSERT INTO accounts (id, balance, a_type, isJoint) VALUES (?, ?, ?, ?)";
 		try (Connection conn = ConnectionUtil.newConnection();
 				PreparedStatement statement = conn.prepareStatement(query)) {
-			statement.setInt(1, getNextAccountID());
+			statement.setInt(1, account.getId());
 			statement.setDouble(2, account.getBalance());
 			statement.setString(3, account.getType());
 //			String isJoint = account.isJoint() ? "joint" : "single";
@@ -74,11 +55,11 @@ public class AccountDao {
 			e.printStackTrace();
 		}
 
-		String query2 = "INSERT INTO customersAccounts (aid, cid) VALUES (?, ?)";
+		String query2 = "INSERT INTO customersaccounts (id, email) VALUES (?, ?)";
 		try (Connection conn = ConnectionUtil.newConnection();
 				PreparedStatement statement = conn.prepareStatement(query2);) {
-			statement.setString(1, customer.getEmail());
-			statement.setInt(2, account.getid());
+			statement.setInt(1, account.getId());
+			statement.setString(2, customer.getEmail());
 			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -86,20 +67,48 @@ public class AccountDao {
 		return account;
 	}
 
+	public Account createJointAccount(Account account, List<Customer> customers) {
+		String query = "INSERT INTO accounts (id, balance, a_type, isJoint) VALUES (?, ?, ?, ?)";
+		try (Connection conn = ConnectionUtil.newConnection();
+				PreparedStatement statement = conn.prepareStatement(query)) {
+			statement.setInt(1, account.getId());
+			statement.setDouble(2, account.getBalance());
+			statement.setString(3, account.getType());
+//			String isJoint = account.isJoint() ? "joint" : "single";
+			statement.setString(4, account.getIsJoint());
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		for (int i = 0; i < customers.size(); i++) {
+			String query2 = "INSERT INTO customersaccounts (id, email) VALUES (?, ?)";
+			try (Connection conn = ConnectionUtil.newConnection();
+					PreparedStatement statement = conn.prepareStatement(query2);) {
+				statement.setInt(1, account.getId());
+				statement.setString(2, customers.get(i).getEmail());
+				statement.executeUpdate();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return account;
+	}
+
 	public Account insertAccount(Account account) {
 		try (Connection conn = ConnectionUtil.newConnection()) {
-			String query = "INSERT INTO accounts (balance, a_type, isJoint) " + "VALUES (?, ?, ?) RETURNING id";
+			String query = "INSERT INTO accounts (id, balance, a_type, isJoint) " + "VALUES (?, ?, ?, ?) RETURNING id";
 
 			PreparedStatement statement = conn.prepareStatement(query);
 
-			statement.setDouble(1, account.getBalance());
-			statement.setString(2, account.getType());
-			statement.setString(3, account.getIsJoint());
+			statement.setInt(1, account.getId());
+			statement.setDouble(2, account.getBalance());
+			statement.setString(3, account.getType());
+			statement.setString(4, account.getIsJoint());
 
 			ResultSet resultSet = statement.executeQuery();
 
 			if (resultSet.next()) {
-				account.setid(resultSet.getInt("id"));
+				account.setId(resultSet.getInt("id"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -107,13 +116,13 @@ public class AccountDao {
 		return account;
 	}
 
-	public Account getAccountById(int id2) {
+	public Account getAccountById(String id2) {
 		Account a = null;
-		String sql = "SELECT * FROM accounts WHERE ID = ?";
+		String sql = "SELECT * FROM accounts WHERE id = 891";
 
 		ResultSet rs = null;
 		try (Connection con = ConnectionUtil.newConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
-			ps.setInt(1, id2);
+//			ps.setString(1, id2);
 			rs = ps.executeQuery();
 
 			while (rs.next()) {
@@ -156,26 +165,22 @@ public class AccountDao {
 		}
 		return a;
 	}
-	
-	public Account update(Account account) 
-	{
-		try(Connection conn = ConnectionUtil.newConnection())
-		{
+
+	public int update(Account account) {
+		int usersUpdated = 0;
+		String query = "UPDATE accounts SET balance = ?, a_type = ?, isJoint = ? WHERE id = ?";
+		try (Connection conn = ConnectionUtil.newConnection(); PreparedStatement ps = conn.prepareStatement(query);) {
 			conn.setAutoCommit(false);
-			String sql = "update accounts set balance = ? where id = ?";
-			
-			String[] keys = {"account_id"};
-			
-			PreparedStatement ps = conn.prepareStatement(sql, keys);
-			ps.setDouble(1,account.getBalance());
-			ps.setInt(2, account.getid());
-			ps.executeQuery();
+			ps.setDouble(1, account.getBalance());
+			ps.setInt(2, account.getId());
+			ps.setString(3, account.getIsJoint());
+			ps.setInt(4, account.getId());
+
+			usersUpdated = ps.executeUpdate();
 			conn.commit();
-		} 
-		catch (SQLException e) 
-		{
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return null;
-}
+		return usersUpdated;
+	}
 }

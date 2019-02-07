@@ -68,3 +68,4 @@ public class InputUtility {
 		return accountType;
 	}
 }
+

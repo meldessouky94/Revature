@@ -1,7 +1,10 @@
 package com.revature.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.UUID;
 
 import com.revature.daos.AccountDao;
 import com.revature.daos.CustomerDao;
@@ -10,92 +13,209 @@ import com.revature.models.Customer;
 import com.revature.util.InputUtility;
 
 public class AccountService {
-	
-	private static Scanner scanner = new Scanner(System.in);
+
+	private static Scanner sc = new Scanner(System.in);
 	private static AccountDao accountDao = new AccountDao();
-	private static CustomerDao customerDao = new CustomerDao();
+//	private static CustomerDao customerDao = new CustomerDao();
 	static Account account = new Account();
 	static Account tempAccount = new Account();
+	static int increment = 0;
+	private Customer c;
 
-	public static void createAccount() {
-		
+	public AccountService(Customer c) {
+		super();
+		this.c = c;
+	}
+
+	public static void createAccount(Customer customer) {
+
 		Account account = new Account();
+		int id = (int) (Math.random() * 1000);
+
+		account.setId(id);
+
 		System.out.println("Are you opening a joint account?");
 		account.setIsJoint(InputUtility.getStringInput(30));
-		
+
 		System.out.println("Are you opening a checkings or savings?");
 		account.setType(InputUtility.getAccountType());
-		
+
 		System.out.println("Please enter initial deposit: ");
-		account.setBalance(InputUtility.getIntChoice(30));
-		
-		account = accountDao.insertAccount(account);
-		int id = accountDao.getNextAccountID();
-		Customer customer = new Customer();
-		String customerEmail  = CustomerService.customer.getEmail();
-		Account a = new Account(id, account.getBalance(), account.getType(), account.getIsJoint());
+		account.setBalance(InputUtility.getIntChoice(10000));
+
 		account = accountDao.createAccount(account, customer);
-	}	
-	
-	public static void showAccounts() {
-		String customerEmail  = CustomerService.customer.getEmail();
-		List<Account> accounts = accountDao.getAccounts();
-		if(accounts == null || accounts.size() == 0) {
-			System.out.println("There are no accounts to show");
-		} else {
-			for(final Account account : accounts) {
-				System.out.println("Account ID: " + account.getid() + "Account type: " + account.getType() + "Joint account: " 
-						+ account.getIsJoint() + "Account balance: $" + account.getBalance());
+	}
+
+	public static void createJointAccount(List<Customer> customers) {
+
+		Account account = new Account();
+		int id = (int) (Math.random() * 1000);
+
+		account.setId(id);
+
+		System.out.println("Are you opening a joint account?");
+		account.setIsJoint(InputUtility.getStringInput(30));
+
+		System.out.println("Are you opening a checkings or savings?");
+		account.setType(InputUtility.getAccountType());
+
+		System.out.println("Please enter initial deposit: ");
+		account.setBalance(InputUtility.getIntChoice(10000));
+
+		account = accountDao.createJointAccount(account, customers);
+	}
+
+
+	public static void deposit(Customer c) {
+		List<Account> customerAccounts = new ArrayList<>();
+		customerAccounts = CustomerDao.getAcounts(c.getEmail());
+
+		Account a = null;
+		while (true) {
+			System.out.println("Your accounts are: ");
+			for (Account acc : customerAccounts) {
+				System.out.println(" " + ((Account) acc).getId());
+			}
+			System.out.println("Which account would you like to deposit into?");
+			String input = sc.nextLine();
+			int accountId = Integer.parseInt(input);
+			for (int i = 0; i < customerAccounts.size(); i++) {
+				if (((Account) customerAccounts.get(i)).getId() == accountId) {
+					a = customerAccounts.get(i);
+				}
+			}
+			if (a == null) {
+				System.out.println("Sorry, invalid account number");
+			} else {
+				break;
 			}
 		}
-	}
-	
-	public static void deposit() {
-		System.out.println("How much would you like to deposit?");
-		double amount = scanner.nextDouble();
-		System.out.println("Which account");
-		showAccounts();
-	}
-	
-//	public static void deposit() {
-//		double amount = 0;
-//		System.out.println("Please enter amount");
-//		String input = scanner.nextLine();
-//		amount = Double.parseDouble(scanner.nextLine());
-//		if(amount < 0) {
-//			System.out.println("Invalid input\n");
-//			new ManageMenu();
+		showBalance(c);
+		System.out.println("Enter the amount you'd like to deposit");
+		// throw numberformatexception if not found
+		double amount = InputUtility.getIntChoice(1000);
+//		if (sc.hasNextDouble()) {
+//			amount = sc.nextDouble();
 //		}
-//		if(amount > 0) {
-//			if(amount > a.getBalance()) {
-//				a.setBalance(a.getBalance() - amount);
-//			}
+		if (amount < 0) {
+			System.out.println("Transaction failed, invalid deposit amount");
+		} else {
+			a.setBalance(a.getBalance() + amount);
+			AccountDao ad = new AccountDao();
+			ad.update(a);
+			System.out.println("$" + amount + " deposited. Your balance is now " + a.getBalance() + ".");
+		}
+	}
+
+	public static void withdraw(Customer c) {
+		List<Account> customerAccounts = new ArrayList<>();
+		customerAccounts = CustomerDao.getAcounts(c.getEmail());
+
+		Account a = null;
+		while (true) {
+			System.out.println("Your accounts are: ");
+			for (Account acc : customerAccounts) {
+				System.out.println(" " + ((Account) acc).getId());
+			}
+			System.out.println("Which account would you like to withdraw from?");
+			String input = sc.nextLine();
+			int accountId = Integer.parseInt(input);
+			for (int i = 0; i < customerAccounts.size(); i++) {
+				if (((Account) customerAccounts.get(i)).getId() == accountId) {
+					a = customerAccounts.get(i);
+				}
+			}
+			if (a == null) {
+				System.out.println("Sorry, invalid account number");
+			} else {
+				break;
+			}
+		}
+		showBalance(c);
+		System.out.println("Enter the amount you'd like to withdraw");
+		// throw numberformatexception if not found
+		double amount = InputUtility.getIntChoice(1000);
+//		if (sc.hasNextDouble()) {
+//			amount = sc.nextDouble();
 //		}
-//		
-//	}
-	
-//	public static void deposit(Customer c, Scanner sc) {
-//		List<Account> customerAccounts = new ArrayList<>();
+		if (amount > a.getBalance() || amount < 0) {
+			System.out.println("Transaction failed, invalid withdrawl amount");
+		} else {
+			a.setBalance(a.getBalance() - amount);
+			AccountDao ad = new AccountDao();
+			ad.update(a);
+			System.out.println("$" + amount + " withdrawn. Your balance is now " + a.getBalance() + ".");
+		}
+	}
+
+	public static void showBalance(Customer c) {
+		List<Account> userAccounts = new ArrayList<>();
 //		CustomerDao cd = new CustomerDao();
-//		customerAccounts = cd.getAcounts(c.getEmail());
-//		
-//		Account a = null;
-//		while(true) {
-//			System.out.println("Your accounts are: ");
-//			for (Account acc: customerAccounts) {
-//				System.out.println(" " + acc.getid());
-//			}
-//			System.out.println("Which account would you like to deposit into?");
-//			String input = sc.nextLine();
-//			int accountId = Integer.parseInt(input);
-//			for(int i = 0; i < customerAccounts.size(); i++) {
-//				if(customerAccounts.get(i).getid()==accountId) {
-//					a.customerAccounts.get(i);
-//				}
-//			}
-//			if(a==null) {
-//				""
-//			}
-//		}
-//	}
+		userAccounts = CustomerDao.getAcounts(c.getEmail());
+
+		for (Account a : userAccounts) {
+			System.out.println("Account no. " + a.getId() + ": $" + a.getBalance());
+		}
+	}
+
+	public static void transfer(Customer c) {
+		List<Account> sourceAccounts = new ArrayList<>();
+		sourceAccounts = CustomerDao.getAcounts(c.getEmail());
+
+		Account a = null;
+		while (true) {
+			System.out.println("Your accounts are: ");
+			for (Account acc : sourceAccounts) {
+				System.out.println(" " + ((Account) acc).getId());
+			}
+			System.out.println("Which account would you like to transfer from?");
+			String input = sc.nextLine();
+			int accountId = Integer.parseInt(input);
+			for (int i = 0; i < sourceAccounts.size(); i++) {
+				if (((Account) sourceAccounts.get(i)).getId() == accountId) {
+					a = sourceAccounts.get(i);
+				}
+			}
+			if (a == null) {
+				System.out.println("Sorry, invalid account number");
+			} else {
+				break;
+			}
+		}
+		showBalance(c);
+		System.out.println("Enter the amount you'd like to transfer");
+		// throw numberformatexception if not found
+		double amount = InputUtility.getIntChoice(1000);
+		if (amount > a.getBalance() || amount < 0) {
+			System.out.println("Transaction failed, invalid withdrawl amount");
+		}
+		a.setBalance(a.getBalance() - amount);
+
+		Account b = null;
+		while (true) {
+			System.out.println("Your accounts are: ");
+			for (Account acc : sourceAccounts) {
+				System.out.println(" " + ((Account) acc).getId());
+			}
+			System.out.println("Which account would you like to transfer to?");
+			String input = sc.nextLine();
+			int accountId = Integer.parseInt(input);
+			for (int i = 0; i < sourceAccounts.size(); i++) {
+				if (((Account) sourceAccounts.get(i)).getId() == accountId) {
+					b = sourceAccounts.get(i);
+				}
+			}
+			if (b == null) {
+				System.out.println("Sorry, invalid account number");
+			} else {
+				break;
+			}
+		}
+		showBalance(c);
+		b.setBalance(b.getBalance() + amount);
+		AccountDao ad = new AccountDao();
+		ad.update(a);
+		ad.update(b);
+		System.out.println("$" + amount + " deposited. Your balance is now " + b.getBalance() + ".");
+	}
 }

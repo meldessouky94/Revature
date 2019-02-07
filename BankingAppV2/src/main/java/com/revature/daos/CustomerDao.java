@@ -1,11 +1,14 @@
 package com.revature.daos;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.revature.models.Account;
 import com.revature.models.Customer;
@@ -53,7 +56,7 @@ public class CustomerDao {
 		return customerList;
 	}
 
-	public Customer getCustomerById(String id) {
+	public static Customer getCustomerById(String id) {
 		Customer customer = null;
 		String query = "SELECT * FROM customers WHERE email = ?";
 
@@ -76,7 +79,7 @@ public class CustomerDao {
 		}
 		return customer;
 	}
-	
+
 	public Customer getCustomerById(Connection conn, String id) {
 		Customer customer = null;
 		String query = "SELECT * FROM customers WHERE email = ?";
@@ -99,33 +102,66 @@ public class CustomerDao {
 		}
 		return customer;
 	}
-	
-	public List<Account> getAcounts(String userId) {
+
+//	public static List<Map<String, String>> getAccounts(String email) {
+//        try(Connection conn = ConnectionUtil.newConnection()){
+//            String query = "SELECT aid FROM customersaccounts WHERE cid= ?;";
+//
+//            PreparedStatement statement = conn.prepareStatement(query);
+//            
+//            statement.setString(1, email);
+//            
+//            ResultSet rs = statement.executeQuery();
+//            List<Map<String, String>> account = new ArrayList<>();
+//            while(rs.next()) {
+//                query = "SELECT * FROM accounts WHERE id = ?";
+//                statement = conn.prepareStatement(query);
+//                statement.setInt(1, rs.getInt("aid"));
+//                ResultSet result = statement.executeQuery();
+//                if(result.next()) {
+//                    Map<String, String> a = new HashMap<>();
+//                    a.put("id", String.valueOf(result.getInt("id")));
+//                    a.put("balance", String.valueOf(result.getDouble("balance")));
+//                    a.put("type", result.getString("account_type"));
+//                    account.add(a);
+//                }
+//            }
+//            return account;
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return new ArrayList<Map<String, String>>();
+//	}
+//}
+	public static List<Account> getAcounts(String email) {
+		String query = "SELECT * FROM accounts WHERE id = ANY( SELECT id FROM customersaccounts WHERE email = ANY(SELECT email FROM customers WHERE email = ?))";
 		List<Account> customerAccounts = new ArrayList<>();
-		String query = "";
 		
 		try (Connection conn = ConnectionUtil.newConnection();
-			PreparedStatement statement = conn.prepareCall(query); ) {
-			ResultSet rs = statement.getResultSet();
+				PreparedStatement statement = conn.prepareStatement(query); ) {
+			
+			statement.setString(1, email);
+			ResultSet rs = statement.executeQuery();
+			
 			while (rs.next()) {
 				Account a = new Account();
 				
 				int id = rs.getInt("id");
-				double balance = rs.getDouble("balance");
+				int balance = rs.getInt("balance");
 				String type = rs.getString("a_type");
 				String isJoint = rs.getString("isJoint");
-
-				a.setid(id);
+				
+				a.setId(id);
 				a.setBalance(balance);
 				a.setType(type);
 				a.setIsJoint(isJoint);
-
+				
 				customerAccounts.add(a);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return customerAccounts;
+			return customerAccounts;
 	}
-	
 }
+	

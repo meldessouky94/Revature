@@ -5,12 +5,13 @@ public class Account {
 	private double balance;
 	private String type;
 	private String isJoint;
+	public Object customerAccounts;
 
-	public int getid() {
+	public int getId() {
 		return id;
 	}
 
-	public void setid(int id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 
@@ -39,26 +40,13 @@ public class Account {
 	}
 
 	@Override
-	public String toString() {
-		return "Account [id=" + id + ", balance=" + balance + ", type=" + type + ", isJoint=" + isJoint + "]";
-	}
-
-	public Account(int id, double balance, String type, String isJoint) {
-		super();
-		this.id = id;
-		this.balance = balance;
-		this.type = type;
-		this.isJoint = isJoint;
-	}
-
-	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + id;
 		long temp;
 		temp = Double.doubleToLongBits(balance);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + id;
 		result = prime * result + ((isJoint == null) ? 0 : isJoint.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
@@ -73,9 +61,9 @@ public class Account {
 		if (getClass() != obj.getClass())
 			return false;
 		Account other = (Account) obj;
-		if (id != other.id)
-			return false;
 		if (Double.doubleToLongBits(balance) != Double.doubleToLongBits(other.balance))
+			return false;
+		if (id != other.id)
 			return false;
 		if (isJoint == null) {
 			if (other.isJoint != null)
@@ -88,6 +76,19 @@ public class Account {
 		} else if (!type.equals(other.type))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Account [id=" + id + ", balance=" + balance + ", type=" + type + ", isJoint=" + isJoint + "]";
+	}
+
+	public Account(int id, double balance, String type, String isJoint) {
+		super();
+		this.id = id;
+		this.balance = balance;
+		this.type = type;
+		this.isJoint = isJoint;
 	}
 
 	public Account() {
